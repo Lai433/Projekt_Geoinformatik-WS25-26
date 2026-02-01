@@ -39,20 +39,28 @@
 
         @media (max-width: 480px) {
             .options-menu {
-                visibility: hidden;
-                bottom: 5px;
-                left: 5px;
-            }
-
-            .options-menu-visible {
-                visibility: visible;
+                visibility: visible !important;
+                /* 强制显示 */
+                position: fixed;
+                top: auto;
+                /* 取消顶部固定 */
+                bottom: 10px;
+                /* 改为固定在底部，方便手机操作 */
+                right: 10px;
+                left: 10px;
+                max-height: 40vh;
+                /* 防止占用过多屏幕 */
+                overflow-y: auto;
+                /* 内容多了可以滑动 */
+                background: rgba(255, 255, 255, 0.9);
+                /* 给个背景，防止看不清 */
+                padding: 10px;
+                border-radius: 8px;
             }
 
             .phone-menu-toggler {
-                visibility: visible;
-                position: fixed;
-                top: 5px;
-                right: 5px;
+                display: none;
+                /* 既然直接显示菜单，就不需要开关了 */
             }
         }
     </style>
@@ -60,7 +68,7 @@
 </head>
 
 <body>
-    
+
     <div class="full-screen" id="container"></div>
 </body>
 
