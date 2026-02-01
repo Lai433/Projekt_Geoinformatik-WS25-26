@@ -84,7 +84,7 @@ const toggleOSM = (visible: boolean) => {
 
       const textureLoader = new THREE.TextureLoader();
       // 提示：确保 map.png 放在 public 文件夹下
-      const osmTexture = textureLoader.load("./map.png");
+      const osmTexture = textureLoader.load("map.png");
 
       const planeMaterial = new THREE.MeshBasicMaterial({ 
         map: osmTexture,
@@ -150,7 +150,8 @@ const downloadFragments = async () => {
   link.click();
   URL.revokeObjectURL(link.href);
 };
-
+const fragmentIfcLoader = components.get(OBC.IfcLoader);
+await fragmentIfcLoader.setup();
 // --- 5. ITEMS FINDER: FILTER FÜR BAUTEILE ---
 const finder = components.get(OBC.ItemsFinder);
 
