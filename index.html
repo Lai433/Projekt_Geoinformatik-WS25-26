@@ -3,73 +3,112 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="icon" type="image/x-icon" href="https://thatopen.github.io/engine_components/resources/favicon.ico">
     <title>Modell vom Geb. 20.40</title>
+    
     <style>
+        /* 1. 基础重置 */
         body {
             margin: 0;
             padding: 0;
-            font-family: "Plus Jakarta Sans", sans-serif;
+            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow: hidden;
+            background-color: #f0f2f5;
         }
 
         .full-screen {
             width: 100vw;
             height: 100vh;
             position: relative;
-            overflow: hidden;
         }
 
+        /* 2. 信息面板 (info-box) - 电脑默认位置 */
+        #info-box {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+            color: #333;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            pointer-events: auto; /* 允许点击面板内容 */
+            display: none;
+            min-width: 260px;
+            max-width: 350px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 3. 选项菜单 (options-menu) - 电脑默认位置 */
         .options-menu {
             position: fixed;
-            top: 5px;
-            right: 5px;
-            max-height: calc(100vh - 10px);
+            top: 20px;
+            right: 20px;
+            max-height: calc(100vh - 40px);
+            z-index: 999;
         }
 
-
-        .phone-menu-toggler {
-            visibility: hidden;
-        }
-
-        @media (max-width: 480px) {
-            .options-menu {
-                visibility: visible !important;
-                /* 强制显示 */
-                position: fixed;
-                top: auto;
-                /* 取消顶部固定 */
-                bottom: 10px;
-                /* 改为固定在底部，方便手机操作 */
-                right: 10px;
+        /* =========================================
+           4. 移动端适配 (响应式核心)
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 信息面板改为底部弹出式卡片 */
+            #info-box {
                 left: 10px;
-                max-height: 40vh;
-                /* 防止占用过多屏幕 */
-                overflow-y: auto;
-                /* 内容多了可以滑动 */
-                background: rgba(255, 255, 255, 0.9);
-                /* 给个背景，防止看不清 */
-                padding: 10px;
-                border-radius: 8px;
+                right: 10px;
+                bottom: 10px;
+                max-width: none;
+                min-width: 0;
+                padding: 15px;
+                border-radius: 16px;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             }
 
-            .phone-menu-toggler {
-                display: none;
-                /* 既然直接显示菜单，就不需要开关了 */
+            /* 选项菜单移至顶部，横向紧凑布局 */
+            .options-menu {
+                top: 10px;
+                right: 10px;
+                left: auto;
+                max-width: 180px; /* 限制宽度，防止遮挡中间 */
+            }
+
+            /* 针对手机端的小调整：文字缩小一点防止溢出 */
+            #info-box strong {
+                font-size: 1rem;
+            }
+            #info-content {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* 针对超小屏幕 (如折叠屏或小屏幕手机) */
+        @media (max-width: 480px) {
+            .options-menu {
+                max-width: 150px;
             }
         }
     </style>
-  <script type="module" crossorigin src="/Projekt_Geoinformatik-WS25-26/assets/index-DKWr_C8P.js"></script>
+  <script type="module" crossorigin src="/Projekt_Geoinformatik-WS25-26/assets/index-CpKDc3xj.js"></script>
 </head>
 
 <body>
+    <div class="full-screen" id="container"></div>
 
-    <div class="full-screen" id="container"></div>
+    <div id="info-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: #2196F3;">Komponenten-Details</strong>
+            <span class="material-icons" style="font-size: 18px; color: #999; cursor: pointer;" onclick="this.parentElement.parentElement.style.display='none'">close</span>
+        </div>
+        <div id="info-content">Klicken Sie auf ein Bauteil, um Details zu sehen.</div>
+    </div>
+
 </body>
 
 </html>
