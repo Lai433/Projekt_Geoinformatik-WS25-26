@@ -3,64 +3,109 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="icon" type="image/x-icon" href="https://thatopen.github.io/engine_components/resources/favicon.ico">
     <title>Modell vom Geb. 20.40</title>
+    
     <style>
+        /* 1. Basis-Reset */
         body {
             margin: 0;
             padding: 0;
-            font-family: "Plus Jakarta Sans", sans-serif;
+            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow: hidden;
+            background-color: #f0f2f5;
         }
 
         .full-screen {
             width: 100vw;
             height: 100vh;
             position: relative;
-            overflow: hidden;
         }
 
+        /* 2. Infobox - Standard-Bildschirmposition */
+        #info-box {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); /* glasige Optik */
+            color: #333;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            pointer-events: auto; /* Erlaubt das Interagieren mit dem Infobox-Inhalt */
+            display: none;
+            min-width: 260px;
+            max-width: 350px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 3. Options-Menü */
         .options-menu {
             position: fixed;
-            top: 5px;
-            right: 5px;
-            max-height: calc(100vh - 10px);
+            top: 20px;
+            right: 20px;
+            max-height: calc(100vh - 40px);
+            z-index: 999;
         }
 
+        /* 4. mobile responsiveness */
+        @media (max-width: 768px) {
+            /* Iformation box moves to the bottom with full width and more padding for easier touch interaction */
+            #info-box {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                max-width: none;
+                min-width: 0;
+                padding: 15px;
+                border-radius: 16px;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            }
 
-        .phone-menu-toggler {
-            visibility: hidden;
+            /* Optionsmenü nach oben verschoben, horizontales Kompakt-Layout*/
+            .options-menu {
+                top: 10px;
+                right: 10px;
+                left: auto;
+                max-width: 180px; /* Breite begrenzen, um Überlappung der Mitte zu verhindern */
+            }
+
+            /* Kleine Anpassung für Mobilgeräte */
+            #info-box strong {
+                font-size: 1rem;
+            }
+            #info-content {
+                font-size: 0.9rem;
+            }
         }
 
+        /* Optimierung für extrem kleine Bildschirme (z. B. Foldables oder kleine Smartphones) */
         @media (max-width: 480px) {
             .options-menu {
-                visibility: hidden;
-                bottom: 5px;
-                left: 5px;
-            }
-
-            .options-menu-visible {
-                visibility: visible;
-            }
-
-            .phone-menu-toggler {
-                visibility: visible;
-                position: fixed;
-                top: 5px;
-                right: 5px;
+                max-width: 150px;
             }
         }
     </style>
 </head>
 
 <body>
-    
     <div class="full-screen" id="container"></div>
+
+    <div id="info-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: #2196F3;">Komponenten-Details</strong>
+            <span class="material-icons" style="font-size: 18px; color: #999; cursor: pointer;" onclick="this.parentElement.parentElement.style.display='none'">close</span>
+        </div>
+        <div id="info-content">Klicken Sie auf ein Bauteil, um Details zu sehen.</div>
+    </div>
+
     <script type="module" src="./main_aktuell.ts"></script>
 </body>
 

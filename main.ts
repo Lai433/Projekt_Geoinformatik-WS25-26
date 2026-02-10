@@ -2,8 +2,9 @@
 import * as THREE from "three";
 import * as BUI from "@thatopen/ui";
 import * as OBC from "@thatopen/components";
-import * as WEBIFC from "web-ifc";
-import * as FRAGS from "@thatopen/fragments";
+//import * as WEBIFC from "web-ifc";
+//import * as FRAGS from "@thatopen/fragments";
+import * as OBCF from "@thatopen/components-front";
 
 // --- 1. INITIALISIERUNG DER BASIS-KOMPONENTEN ---
 const components = new OBC.Components();
@@ -41,6 +42,9 @@ fragments.init(workerUrl);
 components.init(); // Komponenten-System starten
 components.get(OBC.Grids).create(world); // Hilfsgitter hinzufügen
 
+const highlighter = components.get(OBCF.Highlighter);
+highlighter.setup({ world });
+
 // --- 3. IFC-LOADER SETUP ---
 const ifcLoader = components.get(OBC.IfcLoader);
 
@@ -71,26 +75,102 @@ fragments.core.models.materials.list.onItemSet.add(({ value: material }) => {
     material.polygonOffsetFactor = Math.random();
   }
 });
+// --- 5. ITEMS FINDER: FILTER FÜR BAUTEILE ---
+const finder = components.get(OBC.ItemsFinder);
 
-// --- 4. FUNKTIONEN FÜR IFC-IMPORT UND EXPORT ---
+// Filterregeln definieren
+finder.create("Wände", [{ categories: [/WALL/i] }]);
+finder.create("Türen", [{ categories: [/DOOR/i] }]);
+finder.create("Fenster", [{ categories: [/WINDOW/i] }]);
+finder.create("Andere Bauteile", [{ 
+  categories: [/SLAB/i, /ROOF/i, /FURNISHING/i, /PROXY/i, /MEMBER/i] 
+}]);
+
+/* ===============================
+ * 1️⃣ IFC-MODELL LADEN & FRAGMENTS SYNCHRONISIEREN
+ * 2️⃣ KATEGORIE-ERKENNUNG BEI SELEKTION
+ * 3️⃣ IFC-ATTRIBUTE AUSLESEN & ANZEIGEN
+ * =============================== */
+
 const loadIfc = async (path: string) => {
-  const file = await fetch(path);
-  const data = await file.arrayBuffer();
-  const buffer = new Uint8Array(data);
-  
-  console.log("IFC-Konvertierung gestartet...");
-  
-  const model = await ifcLoader.load(buffer, false, "example", {
-    processData: {
-      progressCallback: (progress) => console.log(`Fortschritt: ${Math.round(progress * 100)}%`),
-    },
-  });
+    const file = await fetch(path);
+    const data = await file.arrayBuffer();
+    const buffer = new Uint8Array(data);
 
-  // Wichtig: Daten vom Worker in den Haupt-Thread synchronisieren
-  await fragments.core.update(true);
-  console.log("IFC-Konvertierung abgeschlossen.");
+    // 加载模型并确保属性同步
+    const model = await ifcLoader.load(buffer, true, "example");
+    await fragments.core.update(true);
+
+    console.log("✅ Modell geladen");
+
+    
+highlighter.events.select.onHighlight.add(async (selection) => {
+    const infoBox = document.getElementById("info-box");
+    const infoContent = document.getElementById("info-content");
+    if (!infoBox || !infoContent) return;
+
+    // 1. Gewählte IDs extrahieren
+    const fragmentID = Object.keys(selection)[0];
+    const expressIDs = Array.from(selection[fragmentID]).map(Number);
+    const idNum = expressIDs[0];
+    if (!idNum) return;
+
+    /* ===============================
+     * 2️⃣ KATEGORIE-CHECK (Dein Standard)
+     * =============================== */
+    let erkanntTyp = "Andere Bauteile";
+    
+    // Wir gehen deine definierten Kategorien durch
+    const kategorien = ["Wände", "Türen", "Fenster", "Andere Bauteile"];
+
+    for (const name of kategorien) {
+        const finderQuery = finder.list.get(name);
+        if (finderQuery) {
+            // Wir führen den Test aus, um die aktuelle Map zu erhalten
+            const result = await finderQuery.test(); 
+            
+            // Das Ergebnis von test() ist eine Map: [fragmentID: Set<expressID>]
+            // Wir prüfen, ob unsere fragmentID und idNum darin enthalten sind
+            if (result[fragmentID] && result[fragmentID].has(idNum)) {
+                erkanntTyp = name;
+                break;
+            }
+        }
+    }
+
+    /* ===============================
+     * 3️⃣ IFC ATTRIBUTE & UI
+     * =============================== */
+    const modelWithProps = model as any;
+    const props = modelWithProps.properties ? modelWithProps.properties[idNum] : null;
+
+    const bauteilName = props?.Name?.value || `Bauteil #${idNum}`;
+    const globalId = props?.GlobalId?.value || "—";
+    const ifcClass = props?.type || "IFC Element";
+
+    infoBox.style.display = "block";
+    infoContent.innerHTML = `
+        <div style="border-bottom: 2px solid #2196F3; margin-bottom: 8px; padding-bottom: 4px;">
+            <strong style="color: #2196F3;">Bauteil-Informationen</strong>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+            <b>Kategorie:</b> 
+            <span style="background: #E91E63; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold;">
+                ${erkanntTyp}
+            </span>
+        </div>
+
+        <div style="margin-bottom: 4px;"><b>IFC-Klasse:</b> ${ifcClass}</div>
+        <div style="margin-bottom: 4px;"><b>Name:</b> ${bauteilName}</div>
+        <div style="margin-bottom: 4px;"><b>GlobalID:</b> <small>${globalId}</small></div>
+
+        <div style="font-size: 0.8em; color: #888; margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 5px;">
+            ExpressID: ${idNum}
+        </div>
+    `;
+});
 };
-
 const downloadFragments = async () => {
   const [model] = fragments.list.values();
   if (!model) return;
@@ -103,22 +183,14 @@ const downloadFragments = async () => {
   URL.revokeObjectURL(link.href);
 };
 
-// --- 5. ITEMS FINDER: FILTER FÜR BAUTEILE ---
-const finder = components.get(OBC.ItemsFinder);
 
-// Filterregeln für Wände, Türen, Fenster und Sonstiges definieren
-finder.create("Wände", [{ categories: [/WALL/i] }]);
-finder.create("Türen", [{ categories: [/DOOR/i] }]);
-finder.create("Fenster", [{ categories: [/WINDOW/i] }]);
-finder.create("Andere Bauteile", [{ 
-  categories: [/SLAB/i, /ROOF/i, /FURNISHING/i, /PROXY/i, /MEMBER/i] 
-}]);
 
 const getResult = async (name: string) => {
   const finderQuery = finder.list.get(name);
   if (!finderQuery) return {};
   return await finderQuery.test(); // Gibt FragmentID-Map zurück
 };
+
 
 // --- 6. BENUTZEROBERFLÄCHE (UI) MIT BUI ---
 BUI.Manager.init();
@@ -194,7 +266,7 @@ const [mainPanel, updatePanel] = BUI.Component.create<BUI.Panel, {}>((state) => 
         ${!isModelLoaded 
           ? BUI.html`<bim-button label="IFC-Datei laden" @click=${async ({target}: any) => {
               target.loading = true;
-              await loadIfc("/final_model.ifc");
+              await loadIfc("GuG_buildingV3.ifc");
               target.loading = false;
               updatePanel();
             }}></bim-button>` 

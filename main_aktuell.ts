@@ -2,9 +2,10 @@
 import * as THREE from "three";
 import * as BUI from "@thatopen/ui";
 import * as OBC from "@thatopen/components";
-import * as WEBIFC from "web-ifc";
-import * as FRAGS from "@thatopen/fragments";
+// import * as WEBIFC from "web-ifc";
+// import * as FRAGS from "@thatopen/fragments";
 import * as OBCF from "@thatopen/components-front";
+
 
 
 // --- 1. INITIALISIERUNG DER BASIS-KOMPONENTEN ---
@@ -43,6 +44,8 @@ fragments.init(workerUrl);
 components.init(); // Komponenten-System starten
 components.get(OBC.Grids).create(world); // Hilfsgitter hinzufügen
 
+const highlighter = components.get(OBCF.Highlighter);
+highlighter.setup({ world });
 
 
 
@@ -62,41 +65,41 @@ await ifcLoader.setup({
 world.camera.controls.addEventListener("rest", () => fragments.core.update(true));
 // -----------------------------
 
-// 保持之前的变量和参数定义
+// Variablendefinition und Parameterübergabe für die OSM-Karte
 let osmPlane: THREE.Mesh | null = null;
 
 const OSM_PARAMS = {
   scale: 1,
-  offsetX: 35,
-  offsetZ: -58,
-  rotationY: 0.68 
+  offsetX: -8,
+  offsetY: -3,
+  offsetZ: -15,
+  rotationY: 0
 };
 
 const toggleOSM = (visible: boolean) => {
-  // 确保 world 已经初始化，否则会报错
-  if (!world || !world.scene) return; 
+  // Sicherstellen, dass die Welt und die Szene existieren, bevor wir versuchen, die Karte hinzuzufügen oder zu entfernen
+  if (!world || !world.scene) return;
 
   if (visible) {
     if (!osmPlane) {
-      const planeSize = 750;
+      const planeSize = 930;
       const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
       planeGeometry.rotateX(-Math.PI / 2);
 
       const textureLoader = new THREE.TextureLoader();
-      // 提示：确保 map.png 放在 public 文件夹下
-      const osmTexture = textureLoader.load("map.png");
+      // Aktuelle OSM-Karte: "osm.png" 
+      const osmTexture = textureLoader.load("osm.png");
 
-      const planeMaterial = new THREE.MeshBasicMaterial({ 
+      const planeMaterial = new THREE.MeshBasicMaterial({
         map: osmTexture,
         transparent: true,
         opacity: 1
       });
-      
+
       osmPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       osmPlane.scale.set(OSM_PARAMS.scale, 1, OSM_PARAMS.scale);
       osmPlane.rotation.y = OSM_PARAMS.rotationY;
-      // Y 设置为 -0.1 防止 Z-Fighting
-      osmPlane.position.set(OSM_PARAMS.offsetX, -0.1, OSM_PARAMS.offsetZ); 
+      osmPlane.position.set(OSM_PARAMS.offsetX, OSM_PARAMS.offsetY, OSM_PARAMS.offsetZ);
 
       world.scene.three.add(osmPlane);
     }
@@ -125,18 +128,123 @@ const loadIfc = async (path: string) => {
   const file = await fetch(path);
   const data = await file.arrayBuffer();
   const buffer = new Uint8Array(data);
-  
-  console.log("IFC-Konvertierung gestartet...");
-  
-  const model = await ifcLoader.load(buffer, false, "example", {
-    processData: {
-      progressCallback: (progress) => console.log(`Fortschritt: ${Math.round(progress * 100)}%`),
-    },
-  });
 
-  // Wichtig: Daten vom Worker in den Haupt-Thread synchronisieren
+  // Wichtig: Das zweite Argument "true" aktiviert die Fragmentierung, damit jedes Bauteil als separates Fragment geladen wird
+  const model = await ifcLoader.load(buffer, true, "example");
   await fragments.core.update(true);
-  console.log("IFC-Konvertierung abgeschlossen.");
+
+  console.log("✅ Modell geladen");
+
+
+  highlighter.events.select.onHighlight.add(async (selection) => {
+    const infoBox = document.getElementById("info-box");
+    const infoContent = document.getElementById("info-content");
+    if (!infoBox || !infoContent) return;
+
+    const fragmentID = Object.keys(selection)[0];
+    const expressIDs = Array.from(selection[fragmentID]).map(Number);
+    const idNum = expressIDs[0];
+    if (!idNum) return;
+
+    /* Definition der manuellen Mapping-Tabelle & benutzerdefinierte Daten */
+    const typZuordnung: Record<string, { de: string, ifc: string }> = {
+      "Wände": { de: "Wände", ifc: "IfcWall" },
+      "Türen": { de: "Türen", ifc: "IfcDoor" },
+      "Fenster": { de: "Fenster", ifc: "IfcWindow" },
+      "Räume": { de: "Räume", ifc: "IfcSpace" },
+      "Bodenplatten": { de: "Bodenplatten/Decken", ifc: "IfcSlab" },
+      "Träger/Stützen": { de: "Träger / Stützen", ifc: "IfcMember" },
+      "Andere Bauteile": { de: "Sonstige Bauteile", ifc: "IfcBuildingElement" }
+    };
+
+    // benutzerdefinierte Metadaten für bestimmte Räume 
+    const customMetadata: Record<number, { name: string, faku: string, tpye: string, id: string, info?: string, color?: string }> = {
+        28910: { 
+            name: "JORDAN-HÖRSAAL", 
+            faku: "Geodätischen Institut (GIK)",
+            tpye: "Lecture Hall",
+            id : "002",
+            info: "...",
+            color: "#4CAF50" 
+        },
+    };
+
+    /* Kernlogik: Finder-Test ausführen (Typbestimmung) */
+    let erkanntDe = "Unbekannt";
+    let erkanntIfc = "IfcElement";
+
+    for (const gruppenName in typZuordnung) {
+      const finderQuery = finder.list.get(gruppenName);
+      if (finderQuery) {
+        const result = await finderQuery.test();
+        if (result[fragmentID] && result[fragmentID].has(idNum)) {
+          erkanntDe = typZuordnung[gruppenName].de;
+          erkanntIfc = typZuordnung[gruppenName].ifc;
+          break; 
+        }
+      }
+    }
+
+    /* Attribute abrufen & benutzerdefinierte Space-Daten anwenden */
+    const props = (model as any).properties?.[idNum];
+    
+    // Standardwerte initialisieren
+    let bauteilName = props?.Name?.value || `${erkanntIfc} #${idNum}`;
+    let nameColor = "inherit";
+    let spaceDetailsHtml = ""; // Container für Space-spezifische HTML-Struktur
+
+    // Nur wenn es sich um einen Raum handelt, benutzerdefinierte Daten anwenden und erweitertes Layout anzeigen
+    if (erkanntIfc === "IfcSpace") {
+        const data = customMetadata[idNum];
+        if (data) {
+            bauteilName = data.name;
+            nameColor = data.color || "#E65100"; 
+            
+            // Erweiterte HTML-Struktur für Raumdetails mit klarer Trennung und besserer Lesbarkeit
+            spaceDetailsHtml = `
+                <div style="margin-top: 8px; border-top: 1px solid #ddd; padding-top: 8px; font-size: 0.9em; line-height: 1.6;">
+                    <div><b style="color: #666;">Raum-ID:</b> ${data.id}</div>
+                    <div><b style="color: #666;">Typ:</b> ${data.tpye}</div>
+                    <div><b style="color: #666;">Fakultät:</b> ${data.faku}</div>
+                    ${data.info ? `<div style="margin-top: 4px; color: #888; font-style: italic;">Note: ${data.info}</div>` : ""}
+                </div>
+            `;
+        }
+    }
+
+    /* UI-Anzeige aktualisieren */
+    infoBox.style.display = "block";
+    infoContent.innerHTML = `
+        <div style="border-bottom: 2px solid #2196F3; margin-bottom: 10px; padding-bottom: 5px;">
+            <strong style="color: #2196F3; font-size: 1.1em;">Bauteil-Informationen</strong>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+            <b>Kategorie:</b> 
+            <span style="background: #E91E63; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em;">
+                ${erkanntDe}
+            </span>
+        </div>
+
+        <div style="margin-bottom: 6px;">
+            <b>IFC-Typ:</b> 
+            <span style="color: #4CAF50; font-family: monospace; font-weight: bold;">
+                ${erkanntIfc}
+            </span>
+        </div>
+
+        <div style="margin-bottom: 6px;">
+            <b>Name:</b> 
+            <span style="color: ${nameColor}; font-weight: bold;">${bauteilName}</span>
+        </div>
+
+        ${spaceDetailsHtml}
+
+        <div style="font-size: 0.75em; color: #888; margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 5px;">
+            ExpressID: <code>${idNum}</code>
+        </div>
+    `;
+});
 };
 
 const downloadFragments = async () => {
@@ -153,21 +261,26 @@ const downloadFragments = async () => {
 const fragmentIfcLoader = components.get(OBC.IfcLoader);
 await fragmentIfcLoader.setup();
 // --- 5. ITEMS FINDER: FILTER FÜR BAUTEILE ---
+
+
 const finder = components.get(OBC.ItemsFinder);
 
-// Filterregeln für Wände, Türen, Fenster und Sonstiges definieren
 finder.create("Wände", [{ categories: [/WALL/i] }]);
 finder.create("Türen", [{ categories: [/DOOR/i] }]);
 finder.create("Fenster", [{ categories: [/WINDOW/i] }]);
-finder.create("Andere Bauteile", [{ 
-  categories: [/SLAB/i, /ROOF/i, /FURNISHING/i, /PROXY/i, /MEMBER/i] 
-}]);
+finder.create("Räume", [{ categories: [/SPACE/i] }]);
+finder.create("Bodenplatten", [{ categories: [/SLAB/i] }]);
+finder.create("Träger/Stützen", [{ categories: [/MEMBER|COLUMN|BEAM/i] }]);
+finder.create("Andere Bauteile", [{ categories: [/PROXY|ROOF|FURNISHING/i] }]);
 
 const getResult = async (name: string) => {
   const finderQuery = finder.list.get(name);
   if (!finderQuery) return {};
   return await finderQuery.test(); // Gibt FragmentID-Map zurück
 };
+
+
+
 
 // --- 6. BENUTZEROBERFLÄCHE (UI) MIT BUI ---
 BUI.Manager.init();
@@ -178,11 +291,7 @@ const setOrientation = (side: string) => {
   if (!world.scene || !world.camera) return;
 
   const sceneBounds = new THREE.Box3();
-  
-  // --- 修复点：使用 .list 并遍历其中的模型对象 ---
-  // 在你的版本里，fragments.list 存储了所有加载的模型组
   fragments.list.forEach((model: any) => {
-    // 只有当对象有其 3D 表示（object 或 mesh）时才计算
     if (model.object) {
       sceneBounds.expandByObject(model.object);
     } else if (model.mesh) {
@@ -190,7 +299,7 @@ const setOrientation = (side: string) => {
     }
   });
 
-  // 如果没有模型，则退而求其次使用全场景（包括地图）
+  // Wenn keine Modelle geladen sind, dann die gesamte Szene (inkl. Karte) verwenden
   if (sceneBounds.isEmpty()) {
     sceneBounds.setFromObject(world.scene.three);
   }
@@ -200,9 +309,9 @@ const setOrientation = (side: string) => {
   sceneBounds.getCenter(center);
   sceneBounds.getSize(size);
 
-  // 这里的 distance 现在是根据“建筑”大小计算的，不会被 750 宽的地图撑大
+  // Abstand basierend auf der größten Ausdehnung der Szene berechnen, um sicherzustellen, dass die gesamte Szene in der Ansicht bleibt
   const maxDim = Math.max(size.x, size.y, size.z);
-  const distance = Math.max(maxDim, 20) * 1.5; 
+  const distance = Math.max(maxDim, 20) * 1.5;
 
   let offset = new THREE.Vector3();
   switch (side) {
@@ -216,7 +325,7 @@ const setOrientation = (side: string) => {
 
   (world.camera as OBC.SimpleCamera).controls.setLookAt(
     center.x + offset.x, center.y + offset.y, center.z + offset.z,
-    center.x, center.y, center.z, 
+    center.x, center.y, center.z,
     true
   );
 };
@@ -238,11 +347,10 @@ const queriesList = BUI.Component.create<BUI.Table<QueriesListTableData>>(() => 
   return BUI.html`<bim-table ${BUI.ref(onCreated)}></bim-table>`;
 });
 const onOSMToggled = (e: Event) => {
-    // 关键修正：BUI Checkbox 的 value 本身就是 boolean
-    const target = e.target as any; 
-    const isChecked = target.value; 
-    toggleOSM(isChecked);
-  };
+  const target = e.target as any;
+  const isChecked = target.value;
+  toggleOSM(isChecked);
+};
 
 // Tabellen-Konfiguration und Interaktion (Bauteile isolieren)
 queriesList.style.maxHeight = "20rem";
@@ -252,7 +360,7 @@ queriesList.dataTransform = {
     const { Name } = rowData;
     if (!Name) return _;
     return BUI.html`
-      <bim-button icon="solar:cursor-bold" @click=${async ({target}: any) => {
+      <bim-button icon="solar:cursor-bold" @click=${async ({ target }: any) => {
         target.loading = true;
         const result = await getResult(Name);
         await components.get(OBC.Hider).isolate(result);
@@ -264,18 +372,19 @@ queriesList.dataTransform = {
 // --- 7. DAS HAUPTPANEL ---
 const [mainPanel, updatePanel] = BUI.Component.create<BUI.Panel, {}>((state) => {
   const isModelLoaded = fragments.list.size > 0;
-return BUI.html`
+  return BUI.html`
     <bim-panel active label="BIM Management Center" class="options-menu">
       
       <bim-panel-section label="Modell-Verwaltung" icon="solar:settings-bold">
-        ${!isModelLoaded 
-          ? BUI.html`<bim-button label="IFC-Datei laden" @click=${async ({target}: any) => {
-              target.loading = true;
-              await loadIfc("final_model.ifc");
-              target.loading = false;
-              updatePanel();
-            }}></bim-button>` 
-          : BUI.html`<bim-button label="Fragments herunterladen" @click=${downloadFragments}></bim-button>`}
+        ${!isModelLoaded
+      ? BUI.html`<bim-button label="IFC-Datei laden" @click=${async ({ target }: any) => {
+        target.loading = true;
+        // Aktuelle IFC Datei: "building.ifc" 
+        await loadIfc("building.ifc");
+        target.loading = false;
+        updatePanel();
+      }}></bim-button>`
+      : BUI.html`<bim-button label="Fragments herunterladen" @click=${downloadFragments}></bim-button>`}
         <bim-button label="Alles anzeigen" @click=${() => components.get(OBC.Hider).set(true)}></bim-button>
       </bim-panel-section>
 
