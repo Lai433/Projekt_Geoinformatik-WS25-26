@@ -188,7 +188,7 @@ const downloadFragments = async () => {
 const getResult = async (name: string) => {
   const finderQuery = finder.list.get(name);
   if (!finderQuery) return {};
-  return await finderQuery.test(); // Gibt FragmentID-Map zurück
+  return await finderQuery.test(); // Gibt FragmentID-Map zurück: { [fragmentID: string]: Set<expressID> }
 };
 
 

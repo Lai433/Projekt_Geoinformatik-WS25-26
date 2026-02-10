@@ -65,7 +65,7 @@ await ifcLoader.setup({
 world.camera.controls.addEventListener("rest", () => fragments.core.update(true));
 // -----------------------------
 
-// Variablendefinition und Parameterübergabe für die OSM-Karte
+// Variablendefinition und Parameterübergabe für OSM-Karte
 let osmPlane: THREE.Mesh | null = null;
 
 const OSM_PARAMS = {
@@ -87,7 +87,7 @@ const toggleOSM = (visible: boolean) => {
       planeGeometry.rotateX(-Math.PI / 2);
 
       const textureLoader = new THREE.TextureLoader();
-      // Aktuelle OSM-Karte: "osm.png" 
+      // Aktuelle OSM-Karte: "osm.png"
       const osmTexture = textureLoader.load("osm.png");
 
       const planeMaterial = new THREE.MeshBasicMaterial({
