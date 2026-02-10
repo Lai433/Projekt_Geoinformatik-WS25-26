@@ -11,7 +11,7 @@
     <title>Modell vom Geb. 20.40</title>
     
     <style>
-        /* 1. 基础重置 */
+        /* 1. Basis-Reset */
         body {
             margin: 0;
             padding: 0;
@@ -26,19 +26,19 @@
             position: relative;
         }
 
-        /* 2. 信息面板 (info-box) - 电脑默认位置 */
+        /* 2. Infobox - Standard-Bildschirmposition */
         #info-box {
             position: fixed;
             bottom: 20px;
             left: 20px;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+            backdrop-filter: blur(10px); /* glasige Optik */
             color: #333;
             padding: 18px;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
             z-index: 1000;
-            pointer-events: auto; /* 允许点击面板内容 */
+            pointer-events: auto; /* Erlaubt das Interagieren mit dem Infobox-Inhalt */
             display: none;
             min-width: 260px;
             max-width: 350px;
@@ -46,7 +46,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* 3. 选项菜单 (options-menu) - 电脑默认位置 */
+        /* 3. Options-Menü */
         .options-menu {
             position: fixed;
             top: 20px;
@@ -55,11 +55,9 @@
             z-index: 999;
         }
 
-        /* =========================================
-           4. 移动端适配 (响应式核心)
-           ========================================= */
+        /* 4. mobile responsiveness */
         @media (max-width: 768px) {
-            /* 信息面板改为底部弹出式卡片 */
+            /* Iformation box moves to the bottom with full width and more padding for easier touch interaction */
             #info-box {
                 left: 10px;
                 right: 10px;
@@ -71,15 +69,15 @@
                 box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             }
 
-            /* 选项菜单移至顶部，横向紧凑布局 */
+            /* Optionsmenü nach oben verschoben, horizontales Kompakt-Layout*/
             .options-menu {
                 top: 10px;
                 right: 10px;
                 left: auto;
-                max-width: 180px; /* 限制宽度，防止遮挡中间 */
+                max-width: 180px; /* Breite begrenzen, um Überlappung der Mitte zu verhindern */
             }
 
-            /* 针对手机端的小调整：文字缩小一点防止溢出 */
+            /* Kleine Anpassung für Mobilgeräte */
             #info-box strong {
                 font-size: 1rem;
             }
@@ -88,14 +86,14 @@
             }
         }
 
-        /* 针对超小屏幕 (如折叠屏或小屏幕手机) */
+        /* Optimierung für extrem kleine Bildschirme (z. B. Foldables oder kleine Smartphones) */
         @media (max-width: 480px) {
             .options-menu {
                 max-width: 150px;
             }
         }
     </style>
-  <script type="module" crossorigin src="/Projekt_Geoinformatik-WS25-26/assets/index-DedXcTMe.js"></script>
+  <script type="module" crossorigin src="/Projekt_Geoinformatik-WS25-26/assets/index-Cm9TC5oU.js"></script>
 </head>
 
 <body>
