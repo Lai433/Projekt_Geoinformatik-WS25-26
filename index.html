@@ -92,6 +92,82 @@
                 max-width: 150px;
             }
         }
+        /* 5. Rechts oben Button*/
+        #control-panel {
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            padding: 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            z-index: 1001;
+            width: 240px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #control-panel button {
+            width: 100%; 
+            margin-bottom: 8px; 
+            padding: 10px; 
+            cursor: pointer; 
+            border: none; 
+            background: #2196F3; 
+            color: white; 
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        #control-panel button:hover {
+            background: #1976D2;
+        }
+
+        #control-panel select {
+            width: 100%; 
+            margin-top: 5px; 
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        /* 6. Mitteles Info Box */
+        #top-info-bar {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(33, 150, 243, 0.95);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            display: none;
+            z-index: 1002;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+       
+        @media (max-width: 768px) {
+            #control-panel {
+                top: 10px;
+                left: 10px;
+                right: auto;
+                width: 160px;
+                padding: 10px;
+                font-size: 12px;
+            }
+            #top-info-bar {
+                top: 70px; 
+                padding: 8px 20px;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 
@@ -105,6 +181,43 @@
         </div>
         <div id="info-content">Klicken Sie auf ein Bauteil, um Details zu sehen.</div>
     </div>
+    
+    <div id="top-info-bar">Fokus: Jordan-Hörsaal</div>
+
+    <div id="control-panel">
+        <strong style="display: block; margin-bottom: 10px; color: #2196F3;">Räume-Steuerung</strong>
+        
+        <button id="show-all-spaces">
+            <span class="material-icons" style="vertical-align: middle; font-size: 18px;">visibility</span> 
+            Alle Räume anzeigen
+        </button>
+
+        <div style="border-top: 1px solid #eee; margin: 10px 0; padding-top: 10px;">
+            <label><b>Etage wählen:</b></label>
+            <select id="floor-select">
+                <option value="all">-- Alle Etagen --</option>
+                <option value="KL">Keller</option>
+                <option value="EG">Erdgeschoss (EG)</option>
+                <option value="1OG">1. Obergeschoss</option>
+                <option value="2OG">2. Obergeschoss</option>
+                <option value="Dach">Dachgeschoss</option>
+
+
+            </select>
+        </div>
+
+        <div>
+            <label><b>Raum wählen:</b></label>
+            <select id="room-select">
+                <option value="none">-- Raum wählen --</option>
+            </select>
+        </div>
+        
+        <button id="reset-view" style="background: #f44336; margin-top: 10px;">
+            Zurücksetzen
+        </button>
+    </div>
+    
 
     <script type="module" src="./main_aktuell.ts"></script>
 </body>

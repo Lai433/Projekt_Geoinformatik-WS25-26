@@ -27,6 +27,7 @@ const container = document.getElementById("container")!;
 world.renderer = new OBC.SimpleRenderer(components, container);
 world.camera = new OBC.OrthoPerspectiveCamera(components);
 
+
 // Standard-Kamerasicht festlegen
 await world.camera.controls.setLookAt(78, 20, -2.2, 26, -4, 25);
 
@@ -157,8 +158,11 @@ const loadIfc = async (path: string) => {
       "Andere Bauteile": { de: "Sonstige Bauteile", ifc: "IfcBuildingElement" }
     };
 
+
+
+
     // benutzerdefinierte Metadaten für bestimmte Räume 
-    const customMetadata: Record<number, { name: string, faku: string, tpye: string, id: string, info?: string, color?: string }> = {
+    /* const customMetadata: Record<number, { name: string, faku: string, tpye: string, id: string, info?: string, color?: string }> = {
         28910: { 
             name: "JORDAN-HÖRSAAL", 
             faku: "Geodätischen Institut (GIK)",
@@ -167,7 +171,7 @@ const loadIfc = async (path: string) => {
             info: "...",
             color: "#4CAF50" 
         },
-    };
+    }; */
 
     /* Kernlogik: Finder-Test ausführen (Typbestimmung) */
     let erkanntDe = "Unbekannt";
@@ -180,21 +184,21 @@ const loadIfc = async (path: string) => {
         if (result[fragmentID] && result[fragmentID].has(idNum)) {
           erkanntDe = typZuordnung[gruppenName].de;
           erkanntIfc = typZuordnung[gruppenName].ifc;
-          break; 
+          break;
         }
       }
     }
 
     /* Attribute abrufen & benutzerdefinierte Space-Daten anwenden */
     const props = (model as any).properties?.[idNum];
-    
+
     // Standardwerte initialisieren
     let bauteilName = props?.Name?.value || `${erkanntIfc} #${idNum}`;
     let nameColor = "inherit";
     let spaceDetailsHtml = ""; // Container für Space-spezifische HTML-Struktur
 
     // Nur wenn es sich um einen Raum handelt, benutzerdefinierte Daten anwenden und erweitertes Layout anzeigen
-    if (erkanntIfc === "IfcSpace") {
+    /* if (erkanntIfc === "IfcSpace") {
         const data = customMetadata[idNum];
         if (data) {
             bauteilName = data.name;
@@ -210,7 +214,7 @@ const loadIfc = async (path: string) => {
                 </div>
             `;
         }
-    }
+    }*/
 
     /* UI-Anzeige aktualisieren */
     infoBox.style.display = "block";
@@ -244,10 +248,10 @@ const loadIfc = async (path: string) => {
             ExpressID: <code>${idNum}</code>
         </div>
     `;
-});
+  });
 };
 
-const downloadFragments = async () => {
+/* const downloadFragments = async () => {
   const [model] = fragments.list.values();
   if (!model) return;
   const fragsBuffer = await model.getBuffer(false);
@@ -257,9 +261,29 @@ const downloadFragments = async () => {
   link.download = file.name;
   link.click();
   URL.revokeObjectURL(link.href);
-};
+}; */
+
 const fragmentIfcLoader = components.get(OBC.IfcLoader);
 await fragmentIfcLoader.setup();
+const autoLoadModel = async () => {
+  console.log("🚀 Starte automatischen Modell-Download...");
+  try {
+    // Hier kannst du den Pfad zu deinem IFC-Modell anpassen (lokal oder remote)
+    await loadIfc("GuG_buildingV3.ifc");
+    toggleOSM(true);
+
+    // Optional: Direkt nach dem Laden die Ansicht auf eine gute Perspektive setzen
+    updatePanel();
+
+    console.log("🎯 Modell erfolgreich automatisch geladen");
+  } catch (error) {
+    console.error("❌ Fehler beim automatischen Laden:", error);
+  }
+};
+
+// 3. Automatischer Modell-Download beim Start der Anwendung
+autoLoadModel();
+
 // --- 5. ITEMS FINDER: FILTER FÜR BAUTEILE ---
 
 
@@ -278,6 +302,431 @@ const getResult = async (name: string) => {
   if (!finderQuery) return {};
   return await finderQuery.test(); // Gibt FragmentID-Map zurück
 };
+/* ==========================================
+ * 1. Data Section: Manuelle Mapping-Tabelle & benutzerdefinierte Raumdaten
+ * ========================================== */
+const customMetadata: Record<number, { name: string, type: string, id: string, etage: string, info?: string }> = {
+  28910: {
+    name: "JORDAN-HÖRSAAL",
+    type: "Lecture Hall",
+    id: "002",
+    etage: "EG",
+    info: "..."
+  },
+  35597: {
+    name: "SKY-HÖRSAAL",
+    type: "Lecture Hall",
+    id: "048",
+    etage: "EG",
+    info: "..."
+  },
+  43656: {
+    name: "GIK Büro und Sekretariat",
+    type: "Büro",
+    id: "041",
+    etage: "EG",
+    info: "..."
+  },
+  35609: {
+    name: "HAID-HÖRSAAL",
+    type: "Lecture Hall",
+    id: "040",
+    etage: "EG",
+    info: "..."
+  },
+  35621: {
+    name: "PC-Pool",
+    type: "Computer Pool",
+    id: "039",
+    etage: "EG",
+    info: "..."
+  },
+  43786: {
+    name: "GIK Büro und Besprechungsraum",
+    type: "Büro und Besprechungsraum",
+    id: "034",
+    etage: "EG",
+    info: "..."
+  },
+  43834: {
+    name: "IPF Besprechungsraum",
+    type: "Besprechungsraum",
+    id: "028",
+    etage: "EG",
+    info: "..."
+  },
+  43910: {
+    name: "FRITZ-HALLER-HÖRSAAL(HS37)",
+    type: "Lecture Hall",
+    id: "001",
+    etage: "EG",
+    info: "..."
+  },
+  43789: {
+    name: "Fakultätsbibliothek",
+    type: "Bibliothek",
+    id: "005",
+    etage: "EG",
+    info: "..."
+  },
+  43498: {
+    name: "Neuer-HÖRSAAL",
+    type: "Lecture Hall",
+    id: "003",
+    etage: "EG",
+    info: "..."
+  },
+  43587: {
+    name: "EGON-EIERMANN-HÖRSAAL(HS16)",
+    type: "Lecture Hall",
+    id: "101",
+    etage: "1OG",
+    info: "..."
+  },
+  43603: {
+    name: "HÖRSAAL 9",
+    type: "Lecture Hall",
+    id: "102",
+    etage: "1OG",
+    info: "..."
+  },
+  43865: {
+    name: "Zeichnensaal",
+    type: "Lecture Hall",
+    id: "204",
+    etage: "2OG",
+    info: "..."
+  },
+  43851: {
+    name: "Observatorium",
+    type: "Observatorium",
+    id: "301",
+    etage: "Dach",
+    info: "..."
+  }
+  // Hier kannst du weitere Räume hinzufügen, indem du die Fragment-ID als Schlüssel und die entsprechenden Metadaten als Wert einfügst
+};
+
+const roomsByFloor: Record<string, { id: number, name: string }[]> = {
+  "KL": [],// hier kannst du die Keller-Räume hinzufügen, z.B. "KL": [{ id: 12345, name: "Kellerraum 1" }, ...]
+  "EG": [{ id: 28910, name: "Jordan-Hörsaal" }, { id: 35597, name: "Sky-Hörsaal" }, { id: 43656, name: "GIK Büro und Sekretariat" }, { id: 35609, name: "Haid-Hörsaal" }, { id: 35621, name: "PC-Pool" }, { id: 43786, name: "GIK Büro und Besprechungsraum" }, { id: 43834, name: "IPF Besprechungsraum" }, { id: 43910, name: "Fritz-Haller-Hörsaal(HS37)" }, { id: 43789, name: "Fakultätsbibliothek" }, { id: 43498, name: "Neuer-Hörsaal" }],
+  "1OG": [{ id: 43587, name: "Egon-Eiermann-Hörsaal(HS16)" }, { id: 43603, name: "Hörsaal 9" }], // hier kannst du die 1. OG-Räume hinzufügen
+  "2OG": [{ id: 43865, name: "Zeichnensaal" }], // hier kannst du die 2. OG-Räume hinzufügen
+  "Dach": [{ id: 43851, name: "Observatorium" }] // hier kannst du die Dachgeschoss-Räume hinzufügen
+};
+
+/* ==========================================
+ * 2. Logic Section: Funktionen für Sichtwechsel, Raumisolierung und UI-Interaktion
+ * ========================================== */
+
+// --- A. Ansicht setBirdView ---
+const setBirdView = () => {
+  if (!world.scene || !world.camera) return;
+
+  const sceneBounds = new THREE.Box3();
+
+  // 1. Berechnung der Szenengrenzen basierend auf allen Fragmenten
+  fragments.list.forEach((model: any) => {
+    const obj = model.object || model.mesh || model.group;
+    if (obj) sceneBounds.expandByObject(obj);
+  });
+
+  if (sceneBounds.isEmpty()) {
+    sceneBounds.setFromObject(world.scene.three);
+  }
+
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  sceneBounds.getCenter(center);
+  sceneBounds.getSize(size);
+
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const distance = Math.max(maxDim, 20) * 0.8;
+
+  // der Offset wird so berechnet, dass die Kamera in einem 45-Grad-Winkel von oben auf die Szene blickt
+  const offset = new THREE.Vector3(
+    0,                  // X keine seitliche Verschiebung
+    distance * 1.0,     // Y nach oben (Höhe der Kamera)
+    distance * 1.0      // Z nach hinten (Entfernung von der Szene)
+  );
+
+  // 2️⃣ Kamera-Positionierung: Setze die Kamera mit einem 45-Grad-Winkel auf die Szene
+  (world.camera as OBC.SimpleCamera).controls.setLookAt(
+    center.x + offset.x, center.y + offset.y, center.z + offset.z, // Kameraposition
+    center.x, center.y, center.z,                                   // Blickpunkt (Szenenzentrum)
+    true                                                           // sanftes Übergang
+  );
+};
+
+// --- B. isolateSpaces ---
+const isolateSpaces = async (targetIDs?: number[]) => {
+  const roomResults = await finder.list.get("Räume")?.test();
+  if (!roomResults) {
+    console.error("Finder 'Räume' not found!");
+    return;
+  }
+
+  // 1. alle Modelle durchgehen, um die relevanten Fragmente zu finden
+  for (const [modelID, model] of fragments.list) {
+    // 2. Jedes Fragment im Modell durchgehen und prüfen, ob es Raum-IDs enthält
+    const frags = (model as any).items as any[];
+    if (!frags) continue;
+
+    frags.forEach((frag: any) => {
+      const idsInFrag = roomResults[frag.id];
+
+      if (idsInFrag && idsInFrag.size > 0) {
+        //  3. Wenn das Fragment Raum-IDs enthält, prüfen wir, ob es die Ziel-IDs enthält (für Einzelauswahl) oder einfach alle anzeigen (für Gesamtansicht)
+        if (targetIDs) {
+          // Einzelraum-Modus: Nur die Fragmente anzeigen, die die ausgewählten Raum-IDs enthalten
+          const filteredIDs = Array.from(idsInFrag).filter(id => targetIDs.includes(id as number));
+
+          if (filteredIDs.length > 0) {
+            frag.setVisibility(true);
+            // Alle IDs im Fragment zunächst ausblenden, dann nur die gefilterten IDs anzeigen
+            frag.setItemsVisibility(Array.from(idsInFrag), false);
+            frag.setItemsVisibility(filteredIDs, true);
+          } else {
+
+            frag.setVisibility(false);
+          }
+        } else {
+          // Gesamtansicht-Modus: Alle Fragmente mit Raum-IDs anzeigen
+          frag.setVisibility(true);
+          frag.setItemsVisibility(Array.from(idsInFrag), true);
+        }
+      } else {
+
+        frag.setVisibility(false);
+      }
+    });
+  }
+};
+/* ==========================================
+ * 4. UI INTERAKTION: Event-Listener für Buttons und Dropdowns, um die oben definierten Funktionen zu triggern
+ * ========================================== */
+
+const setupInteractionMenu = () => {
+  // 1. Element-Referenzen
+  const showAllBtn = document.getElementById("show-all-spaces");
+  const floorSelect = document.getElementById("floor-select") as HTMLSelectElement;
+  // für die Raum-Auswahl brauchen wir einen weiteren Dropdown, den wir in HTML mit id="room-select" definieren müssen
+  const roomSelect = document.getElementById("room-select") as HTMLSelectElement;
+  const topBar = document.getElementById("top-info-bar");
+  const resetViewBtn = document.getElementById("reset-view") as HTMLButtonElement;
+
+  // --- A. "Alle Räume anzeigen" ---
+  // Definieren eines neuen Materials für die blaue Hervorhebung (Sky Blue Stil)
+  const blueHighlightMaterial = {
+
+    color: new THREE.Color(0x90CAF9),
+
+    renderedFaces: 2,
+
+    // Leicht transparente Optik, damit die darunterliegenden Details noch sichtbar bleiben
+    opacity: 0.5,
+
+
+    transparent: true,
+  };
+
+  showAllBtn?.addEventListener("click", async () => {
+    console.log("Alle Räume anzeigen...");
+
+    // 1️⃣ anpassung der Kameraperspektive auf Vogelperspektive
+    if (typeof setBirdView === "function") setBirdView();
+
+    // 2️⃣ Ergebnis aller Räume abrufen (für die Gesamtansicht) - hier brauchen wir alle IDs, um sie später blau zu highlighten
+    const roomResults = await getResult("Räume");
+    if (!roomResults) return;
+
+    // 3️⃣ hider-Komponente verwenden, um alle Räume zu isolieren (sichtbar zu machen) - wir übergeben alle IDs, damit sie nicht ausgeblendet werden
+    const hider = components.get(OBC.Hider);
+    await hider.isolate(roomResults);
+
+    // 4️⃣ Alle Raum-IDs sammeln, um sie später blau zu highlighten
+    const allRoomIds: number[] = [];
+    for (const fragID in roomResults) {
+      roomResults[fragID].forEach((id) => allRoomIds.push(id as number));
+    }
+
+    // 5️⃣ Alle Modelle durchgehen und die gesammelten Raum-IDs mit dem blauen Material hervorheben
+    for (const [id, model] of fragments.list) {
+      try {
+        await (model as any).resetHighlight();
+        if (allRoomIds.length > 0) {
+          await (model as any).highlight(allRoomIds, blueHighlightMaterial);
+        }
+      } catch (e) {
+        console.warn(`Modell ${id} falsch:`, e);
+      }
+    }
+
+    // Fragment-Update erzwingen, damit die Änderungen sofort sichtbar werden
+    if (fragments.core && fragments.core.update) {
+      await fragments.core.update(true);
+    } else if ((fragments as any).update) {
+      await (fragments as any).update(true);
+    }
+
+    // 6️⃣ Update der Top-Bar mit einem klaren Hinweis auf die aktuelle Ansicht
+    if (topBar) {
+      topBar.innerText = "Ansicht: Alle Räume (Blau markiert)";
+      topBar.style.display = "block";
+    }
+  });
+
+  // Etage wählen 
+  floorSelect?.addEventListener("change", () => {
+    const selectedFloor = floorSelect.value;
+    console.log("Etage auswählen:", selectedFloor);
+
+
+    if (roomSelect) {
+      roomSelect.innerHTML = '<option value="none">-- Raum wählen --</option>';
+
+      // Aktualisieren der Raum-Auswahl basierend auf der ausgewählten Etage
+      if (roomsByFloor[selectedFloor]) {
+        roomsByFloor[selectedFloor].forEach(room => {
+          const opt = document.createElement("option");
+          opt.value = room.id.toString();
+          opt.innerText = room.name;
+          roomSelect.appendChild(opt);
+        });
+      }
+    }
+
+  });
+
+  // Raum wählen (Einzelauswahl + Highlight)
+
+  const highlightMaterial = {
+    color: new THREE.Color("gold"),
+    renderedFaces: 2, // FRAGS.RenderedFaces.TWO
+    opacity: 1,
+    transparent: false,
+  };
+
+  // 2. Variable, um die aktuelle Modell-Instanz zu speichern, damit wir später darauf zugreifen können (z.B. für Highlighting oder Metadatenabruf)
+  let currentModel: any = null;
+
+  // 3. Funktion zum Laden eines IFC-Modells, die das geladene Modell in der Variable currentModel speichert, damit wir später darauf zugreifen können (z.B. für Highlighting oder Metadatenabruf)
+  const loadIfc = async (path: string) => {
+    const file = await fetch(path);
+    const data = await file.arrayBuffer();
+    const buffer = new Uint8Array(data);
+
+    // Wichtig: Das zweite Argument "true" aktiviert die Fragmentierung
+    const model = await ifcLoader.load(buffer, true, "example");
+
+    // Das geladene Modell in der Variable currentModel speichern, damit wir später darauf zugreifen können (z.B. für Highlighting oder Metadatenabruf)
+    currentModel = model;
+
+    await fragments.core.update(true);
+    console.log("✅ Modell geladen");
+  };
+
+  // 4. Event-Listener für die Raum-Auswahl, der die Isolierung, das Highlighting und die Metadatenanzeige basierend auf der ausgewählten Raum-ID durchführt
+  roomSelect?.addEventListener("click", async () => {
+    const roomId = parseInt(roomSelect.value);
+    if (isNaN(roomId)) return;
+
+
+    if (typeof setOrientation === "function") setOrientation("Oben");
+
+    const roomResults = await getResult("Räume");
+    const singleRoomResult: Record<string, Set<number>> = {};
+    for (const fragID in roomResults) {
+      if (roomResults[fragID].has(roomId)) {
+        singleRoomResult[fragID] = new Set([roomId]);
+        break;
+      }
+    }
+    const hider = components.get(OBC.Hider);
+    await hider.isolate(singleRoomResult);
+
+    for (const [id, model] of fragments.list) {
+      try {
+        await (model as any).resetHighlight();
+        await (model as any).highlight([roomId], highlightMaterial);
+      } catch (e) { }
+    }
+
+    if (fragments.core?.update) await fragments.core.update(true);
+
+
+    if (topBar) {
+      // 1️⃣ Abrufen der benutzerdefinierten Metadaten für den ausgewählten Raum basierend auf der Raum-ID
+      const data = customMetadata[roomId];
+
+      if (data) {
+        // 2️⃣ Wenn Metadaten vorhanden sind, Anzeige in der Top-Bar mit einem ansprechenden Layout
+        topBar.innerHTML = `
+        <div style="display: flex; gap: 15px; align-items: center; justify-content: center;">
+          <span style="font-weight: bold; color: #ffeb3b;">📍 ${data.name}</span>
+          <span style="font-size: 0.9em; opacity: 0.9;">| Typ: ${data.type}</span>
+          <span style="font-size: 0.9em; opacity: 0.9;">| ID: ${data.id}</span>
+          <span style="font-size: 0.9em; opacity: 0.9;">| Etage: ${data.etage}</span>
+        </div>
+      `;
+      } else {
+        // 3️⃣ Wenn keine Metadaten gefunden wurden, trotzdem die Raum-ID anzeigen, damit der Nutzer weiß, dass etwas ausgewählt wurde
+        topBar.innerText = `Focus: Raum ${roomId} (Keine Metadaten gefunden)`;
+      }
+      topBar.style.display = "block";
+    }
+
+  });
+  // 5. Event-Listener für den "Reset View"-Button, der die Gesamtansicht wiederherstellt, alle Räume anzeigt und die Top-Bar zurücksetzt
+  resetViewBtn?.addEventListener("click", async () => {
+    // 1. Logik: Alle Räume anzeigen (Gesamtansicht) - wir übergeben keine IDs, damit alle Räume sichtbar werden
+    if (typeof isolateSpaces === "function") {
+      await isolateSpaces();
+    }
+
+    // 2. Kamera zurücksetzen: Wir können entweder die ursprüngliche Kameraposition speichern und hier wiederherstellen oder einfach die Vogelperspektive erneut setzen, um eine gute Gesamtansicht zu gewährleisten
+    if (typeof setBirdView === "function") {
+      setBirdView();
+    }
+
+    // 3. Top-Bar zurücksetzen: Inhalt leeren und ausblenden, damit sie nicht mehr stört
+    if (topBar) {
+      topBar.style.display = "none";
+      topBar.innerHTML = ""; // Inhalt leeren
+    }
+    const infoBox = document.getElementById("info-box");
+    const infoContent = document.getElementById("info-content");
+    if (infoBox && infoContent) {
+      infoBox.style.display = "none";
+      infoContent.innerHTML = ""; // Inhalt leeren
+    }
+
+
+    // 4. Raum-Auswahl zurücksetzen: Dropdown auf den Standardwert zurücksetzen, damit es klar ist, dass keine spezifische Auswahl mehr aktiv ist
+    if (roomSelect) {
+      roomSelect.value = "";
+    }
+
+    // 5. Alle Modelle durchgehen und alle Hervorhebungen zurücksetzen, damit die Gesamtansicht wieder sauber und ohne Markierungen ist
+    for (const [id, model] of fragments.list) {
+      try {
+        await (model as any).resetHighlight();
+      } catch (e) {
+        console.warn("Hervorhebung zurücksetzen fehlgeschlagen:", e);
+      }
+    }
+
+    // 6. Fragment-Update erzwingen, damit alle Änderungen sofort sichtbar werden
+    if (fragments.core?.update) {
+      await fragments.core.update(true);
+    }
+
+    console.log("🔄 Gesamtansicht zurückgesetzt: Alle Räume sichtbar, keine Hervorhebungen mehr.");
+  });
+};
+
+// 5. Aufruf der Funktion zum Einrichten des Interaktionsmenüs, damit die Event-Listener aktiv sind und die UI reagiert
+setupInteractionMenu();
 
 
 
@@ -376,23 +825,15 @@ const [mainPanel, updatePanel] = BUI.Component.create<BUI.Panel, {}>((state) => 
     <bim-panel active label="BIM Management Center" class="options-menu">
       
       <bim-panel-section label="Modell-Verwaltung" icon="solar:settings-bold">
-        ${!isModelLoaded
-      ? BUI.html`<bim-button label="IFC-Datei laden" @click=${async ({ target }: any) => {
-        target.loading = true;
-        // Aktuelle IFC Datei: "building.ifc" 
-        await loadIfc("building.ifc");
-        target.loading = false;
-        updatePanel();
-      }}></bim-button>`
-      : BUI.html`<bim-button label="Fragments herunterladen" @click=${downloadFragments}></bim-button>`}
+        
         <bim-button label="Alles anzeigen" @click=${() => components.get(OBC.Hider).set(true)}></bim-button>
       </bim-panel-section>
 
       <bim-panel-section label="Umgebung" icon="solar:map-bold" .collapsed=${!isModelLoaded}>
         <div style="display: flex; flex-direction: column; gap: 5px;">
           <bim-checkbox 
-            label="OSM-Karte anzeigen" 
-            @change=${onOSMToggled}>
+            label="OSM-Karte anzeigen"
+            @change=${(onOSMToggled)}>
           </bim-checkbox>
         </div>
       </bim-panel-section>
