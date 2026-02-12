@@ -409,7 +409,7 @@ const customMetadata: Record<number, { name: string, type: string, id: string, e
 
 const roomsByFloor: Record<string, { id: number, name: string }[]> = {
   "KL": [],// hier kannst du die Keller-Räume hinzufügen, z.B. "KL": [{ id: 12345, name: "Kellerraum 1" }, ...]
-  "EG": [{ id: 28910, name: "Jordan-Hörsaal" }, { id: 35597, name: "Sky-Hörsaal" }, { id: 43656, name: "GIK Büro und Sekretariat" }, { id: 35609, name: "Haid-Hörsaal" }, { id: 35621, name: "PC-Pool" }, { id: 43786, name: "GIK Büro und Besprechungsraum" }, { id: 43834, name: "IPF Besprechungsraum" }, { id: 43910, name: "Fritz-Haller-Hörsaal(HS37)" }, { id: 43789, name: "Fakultätsbibliothek" }, { id: 43498, name: "Neuer-Hörsaal" }],
+  "EG": [{ id: 28910, name: "Jordan-Hörsaal" }, { id: 35597, name: "Sky-Hörsaal" }, { id: 43656, name: "Lehrstuhl für Geoinformatik Büro und Sekretariat" }, { id: 35609, name: "Haid-Hörsaal" }, { id: 35621, name: "PC-Pool" }, { id: 43786, name: "Geodätische Sensorsysteme und Besprechungsraum sowie Sekretariat" }, { id: 43834, name: "IPF Besprechungsraum" }, { id: 43910, name: "Fritz-Haller-Hörsaal(HS37)" }, { id: 43789, name: "Fakultätsbibliothek" }, { id: 43498, name: "Neuer-Hörsaal" }],
   "1OG": [{ id: 43587, name: "Egon-Eiermann-Hörsaal(HS16)" }, { id: 43603, name: "Hörsaal 9" }], // hier kannst du die 1. OG-Räume hinzufügen
   "2OG": [{ id: 43865, name: "Zeichnensaal" }], // hier kannst du die 2. OG-Räume hinzufügen
   "Dach": [{ id: 43851, name: "Observatorium" }] // hier kannst du die Dachgeschoss-Räume hinzufügen
