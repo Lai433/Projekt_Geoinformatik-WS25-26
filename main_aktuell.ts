@@ -321,9 +321,9 @@ const customMetadata: Record<number, { name: string, type: string, id: string, e
     info: "..."
   },
   43656: {
-    name: "GIK Büro und Sekretariat",
+    name: "Lehrstuhl für Geoinformatik Büro und Sekretariat",
     type: "Büro",
-    id: "041",
+    id: "042",
     etage: "EG",
     info: "..."
   },
@@ -342,7 +342,7 @@ const customMetadata: Record<number, { name: string, type: string, id: string, e
     info: "..."
   },
   43786: {
-    name: "GIK Büro und Besprechungsraum",
+    name: "Geodätische Sensorsysteme und Besprechungsraum sowie Sekretariat",
     type: "Büro und Besprechungsraum",
     id: "034",
     etage: "EG",
