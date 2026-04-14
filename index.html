@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="icon" type="image/x-icon" href="https://thatopen.github.io/engine_components/resources/favicon.ico">
+    <title>Modell vom Geb. 20.40</title>
+    
+    <style>
+        /* 1. Basis-Reset */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            background-color: #f0f2f5;
+        }
+
+        .full-screen {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* 2. Infobox - Standard-Bildschirmposition */
+        #info-box {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); /* glasige Optik */
+            color: #333;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            pointer-events: auto; /* Erlaubt das Interagieren mit dem Infobox-Inhalt */
+            display: none;
+            min-width: 260px;
+            max-width: 350px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 3. Options-Menü */
+        .options-menu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            max-height: calc(100vh - 40px);
+            z-index: 999;
+        }
+
+        /* 4. mobile responsiveness */
+        @media (max-width: 768px) {
+            /* Info box moves to bottom with full width and more padding for easier touch interaction */
+            #info-box {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                max-width: none;
+                min-width: 0;
+                padding: 15px;
+                border-radius: 16px;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Options menu moved to top right, compact horizontal layout */
+            .options-menu {
+                top: 10px;
+                right: 10px;
+                left: auto;
+                max-width: 180px;
+            }
+
+            /* Small adjustments for mobile devices */
+            #info-box strong {
+                font-size: 1rem;
+            }
+            #info-content {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 480px) {
+            .options-menu {
+                max-width: 150px;
+            }
+            #info-box {
+                bottom: 80px;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+        }
+        /* 5. Rechts oben Button*/
+        #control-panel {
+            position: fixed; 
+            top: 20px; 
+            left: 20px; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            padding: 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            z-index: 1001;
+            width: 240px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #control-panel button {
+            width: 100%; 
+            margin-bottom: 8px; 
+            padding: 10px; 
+            cursor: pointer; 
+            border: none; 
+            background: #2196F3; 
+            color: white; 
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        #control-panel button:hover {
+            background: #1976D2;
+        }
+
+        #control-panel select {
+            width: 100%; 
+            margin-top: 5px; 
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        /* 6. Mitteles Info Box */
+        #top-info-bar {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(33, 150, 243, 0.95);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            display: none;
+            z-index: 1002;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+       
+        @media (max-width: 768px) {
+            #control-panel {
+                top: 10px;
+                left: 10px;
+                right: auto;
+                width: 180px;
+                padding: 10px;
+                font-size: 12px;
+                border-radius: 10px;
+                transition: all 0.3s ease;
+            }
+            #top-info-bar {
+                top: 70px;
+                padding: 8px 20px;
+                font-size: 0.8rem;
+            }
+            #control-panel button {
+                padding: 12px 8px;
+                font-size: 13px;
+            }
+            #control-panel select {
+                padding: 10px 6px;
+            }
+        }
+
+        /* Handy-Modus: Control Panel als ausklappbares Menü */
+        @media (max-width: 600px) {
+            #control-panel {
+                position: fixed;
+                top: auto;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                width: auto;
+                max-width: none;
+                padding: 12px;
+                border-radius: 16px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            }
+
+            #control-panel-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                width: 100%;
+                padding: 14px;
+                background: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: bold;
+                cursor: pointer;
+                margin-bottom: 10px;
+            }
+
+            #control-panel-toggle:active {
+                background: #1976D2;
+            }
+
+            #control-panel-content {
+                display: block;
+            }
+
+            #control-panel.collapsed #control-panel-content {
+                display: none;
+            }
+
+            #control-panel.collapsed {
+                padding: 10px;
+                width: auto;
+                min-width: 120px;
+            }
+
+            #top-info-bar {
+                top: 20px;
+                padding: 10px 20px;
+                font-size: 0.85rem;
+                max-width: calc(100% - 40px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        @media (min-width: 601px) {
+            #control-panel-toggle {
+                display: none;
+            }
+        }
+    </style>
+ <script type="module" src="src/main_aktuell.ts"></script>
+</head>
+
+<body>
+    <div class="full-screen" id="container"></div>
+
+    <div id="info-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: #2196F3;">Komponenten-Details</strong>
+            <span class="material-icons" style="font-size: 18px; color: #999; cursor: pointer;" onclick="this.parentElement.parentElement.style.display='none'">close</span>
+        </div>
+        <div id="info-content">Klicken Sie auf ein Bauteil, um Details zu sehen.</div>
+    </div>
+    
+    <div id="top-info-bar">Fokus: Jordan-Hörsaal</div>
+
+    <div id="control-panel" class="collapsed">
+        <button id="control-panel-toggle">
+            <span class="material-icons">menu</span>
+            Menü
+        </button>
+        <div id="control-panel-content">
+            <strong style="display: block; margin-bottom: 10px; color: #2196F3;">Räume-Steuerung</strong>
+
+            <button id="show-all-spaces">
+                <span class="material-icons" style="vertical-align: middle; font-size: 18px;">visibility</span>
+                Alle Räume anzeigen
+            </button>
+
+            <button id="toggle-transparency" style="background: #9c27b0;">
+                <span class="material-icons" style="vertical-align: middle; font-size: 18px;">opacity</span>
+                Gebäude aus
+            </button>
+
+            <div style="border-top: 1px solid #eee; margin: 10px 0; padding-top: 10px;">
+                <details id="room-selection-panel" open style="font-size: 0.95rem;">
+                    <summary style="cursor: pointer; margin-bottom: 10px; font-weight: bold;">Raumauswahl</summary>
+                    <div style="margin-top: 10px;">
+                        <label><b>Raum wählen:</b></label>
+                        <select id="room-select" style="width: 100%; margin-top: 6px;">
+                            <option value="none">-- Raum wählen --</option>
+                        </select>
+                    </div>
+                </details>
+            </div>
+
+            <button id="reset-view" style="background: #f44336; margin-top: 10px;">
+                Zurücksetzen
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('control-panel-toggle')?.addEventListener('click', function() {
+            const panel = document.getElementById('control-panel');
+            panel.classList.toggle('collapsed');
+            const icon = this.querySelector('.material-icons');
+            if (panel.classList.contains('collapsed')) {
+                icon.textContent = 'menu';
+                this.innerHTML = '<span class="material-icons">menu</span> Menü';
+            } else {
+                icon.textContent = 'close';
+                this.innerHTML = '<span class="material-icons">close</span> Schließen';
+            }
+        });
+    </script>
+    
+
+</body>
+
+</html>
