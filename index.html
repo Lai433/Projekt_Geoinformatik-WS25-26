@@ -53,6 +53,51 @@
             right: 20px;
             max-height: calc(100vh - 40px);
             z-index: 999;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+        }
+
+        #options-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: #2196F3;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1004;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 20px;
+        }
+
+        #options-menu-toggle .material-icons {
+            font-size: 20px;
+        }
+
+        #top-info-bar {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(33, 150, 243, 0.95);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            display: none;
+            z-index: 1002;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+            max-width: calc(100vw - 80px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* 4. mobile responsiveness */
@@ -71,10 +116,23 @@
 
             /* Options menu moved to top right, compact horizontal layout */
             .options-menu {
-                top: 10px;
+                top: 70px;
                 right: 10px;
                 left: auto;
-                max-width: 180px;
+                max-width: 280px;
+                width: auto;
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            #options-menu-toggle {
+                display: inline-flex;
+            }
+
+            .options-menu.mobile-collapsed {
+                transform: translateX(110%);
+                opacity: 0;
+                pointer-events: none;
             }
 
             /* Small adjustments for mobile devices */
@@ -139,23 +197,6 @@
             border: 1px solid #ddd;
         }
 
-        /* 6. Mitteles Info Box */
-        #top-info-bar {
-            position: fixed;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(33, 150, 243, 0.95);
-            color: white;
-            padding: 12px 30px;
-            border-radius: 50px;
-            display: none;
-            z-index: 1002;
-            font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            pointer-events: none;
-            white-space: nowrap;
-        }
 
        
         @media (max-width: 768px) {
@@ -238,6 +279,8 @@
                 padding: 10px 20px;
                 font-size: 0.85rem;
                 max-width: calc(100% - 40px);
+                white-space: normal;
+                word-break: break-word;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
@@ -249,7 +292,7 @@
             }
         }
     </style>
- <script type="module" src="src/main_aktuell.ts"></script>
+ <script type="module" src="./src/main_aktuell.ts"></script>
 </head>
 
 <body>
@@ -264,6 +307,9 @@
     </div>
     
     <div id="top-info-bar">Fokus: Jordan-Hörsaal</div>
+    <button id="options-menu-toggle" title="Menü anzeigen/verbergen">
+        <span class="material-icons">settings</span>
+    </button>
 
     <div id="control-panel" class="collapsed">
         <button id="control-panel-toggle">
@@ -314,9 +360,22 @@
                 this.innerHTML = '<span class="material-icons">close</span> Schließen';
             }
         });
+
+        document.getElementById('options-menu-toggle')?.addEventListener('click', function() {
+            const rightPanel = document.querySelector('.options-menu');
+            if (!rightPanel) return;
+
+            rightPanel.classList.toggle('mobile-collapsed');
+            const icon = this.querySelector('.material-icons');
+            if (rightPanel.classList.contains('mobile-collapsed')) {
+                icon.textContent = 'settings';
+                this.title = 'Menü anzeigen';
+            } else {
+                icon.textContent = 'close';
+                this.title = 'Menü verbergen';
+            }
+        });
     </script>
-    
 
 </body>
-
 </html>
