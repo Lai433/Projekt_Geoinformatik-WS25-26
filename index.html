@@ -54,6 +54,8 @@
             max-height: calc(100vh - 40px);
             z-index: 999;
             transition: transform 0.25s ease, opacity 0.25s ease;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         #options-menu-toggle {
@@ -97,7 +99,9 @@
             max-width: calc(100vw - 80px);
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
+            word-wrap: break-word;
+            word-break: break-word;
         }
 
         /* 4. mobile responsiveness */
@@ -121,18 +125,19 @@
                 left: auto;
                 max-width: 280px;
                 width: auto;
-                transform: translateX(0);
-                opacity: 1;
+                transform: translateX(110%);
+                opacity: 0;
+                pointer-events: none;
             }
 
             #options-menu-toggle {
                 display: inline-flex;
             }
 
-            .options-menu.mobile-collapsed {
-                transform: translateX(110%);
-                opacity: 0;
-                pointer-events: none;
+            .options-menu.open {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
             }
 
             /* Small adjustments for mobile devices */
@@ -365,16 +370,38 @@
             const rightPanel = document.querySelector('.options-menu');
             if (!rightPanel) return;
 
-            rightPanel.classList.toggle('mobile-collapsed');
+            rightPanel.classList.toggle('open');
             const icon = this.querySelector('.material-icons');
-            if (rightPanel.classList.contains('mobile-collapsed')) {
-                icon.textContent = 'settings';
-                this.title = 'Menü anzeigen';
-            } else {
+            if (rightPanel.classList.contains('open')) {
                 icon.textContent = 'close';
                 this.title = 'Menü verbergen';
+            } else {
+                icon.textContent = 'settings';
+                this.title = 'Menü anzeigen';
             }
         });
+
+        const updateRightPanelMobileState = () => {
+            const rightPanel = document.querySelector('.options-menu');
+            const toggleButton = document.getElementById('options-menu-toggle');
+            if (!rightPanel || !toggleButton) return;
+
+            if (window.innerWidth <= 768) {
+                toggleButton.style.display = 'inline-flex';
+                rightPanel.classList.remove('open');
+                const toggleIcon = toggleButton.querySelector('.material-icons');
+                if (toggleIcon) {
+                    toggleIcon.textContent = 'settings';
+                }
+                toggleButton.title = 'Menü anzeigen';
+            } else {
+                toggleButton.style.display = 'none';
+                rightPanel.classList.add('open');
+            }
+        };
+
+        window.addEventListener('resize', updateRightPanelMobileState);
+        updateRightPanelMobileState();
     </script>
 
 </body>
