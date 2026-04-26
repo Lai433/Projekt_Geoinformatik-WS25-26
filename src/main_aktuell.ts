@@ -391,7 +391,7 @@ const autoLoadModel = async () => {
   console.log("🚀 Starte automatischen Modell-Download...");
   try {
     // Hier kannst du den Pfad zu deinem IFC-Modell anpassen (lokal oder remote)
-    await loadIfc("GuG_buildingV3.ifc");
+    await loadIfc("GUGBuilding2104.ifc");
     toggleOSM(true);
 
     // Direkt nach dem Laden die Kamera auf eine 45° Frontansicht zentrieren
@@ -530,13 +530,41 @@ const customMetadata: Record<number, { name: string, type: string, id: string, e
     id: "301",
     etage: "Dach",
     info: "..."
+  },
+  48299: {
+    name: "Damen Toilette",
+    type: "Toilette",
+    id: "WC D",
+    etage: "EG",
+    info: "..."
+  },
+  47518: {
+    name: "Photo-Lab",
+    type: "Laboratory",
+    id: "009",
+    etage: "KL",
+    info: "..."
+  },
+  48257: {
+    name: "Herren Toilette",
+    type: "Toilette",
+    id: "WC H",
+    etage: "EG",
+    info: "..."
+  },
+  48217: {
+    name: "GIS-Lab",
+    type: "Laboratory",
+    id: "008",
+    etage: "KL",
+    info: "..."
   }
   // Hier kannst du weitere Räume hinzufügen, indem du die Fragment-ID als Schlüssel und die entsprechenden Metadaten als Wert einfügst
 };
 
 const roomsByFloor: Record<string, { id: number, name: string }[]> = {
-  "KL": [],// hier kannst du die Keller-Räume hinzufügen, z.B. "KL": [{ id: 12345, name: "Kellerraum 1" }, ...]
-  "EG": [{ id: 28910, name: "Jordan-Hörsaal" }, { id: 35597, name: "Sky-Hörsaal" }, { id: 43656, name: "Lehrstuhl für Geoinformatik Büro und Sekretariat" }, { id: 35609, name: "Haid-Hörsaal" }, { id: 35621, name: "PC-Pool" }, { id: 43786, name: "Geodätische Sensorsysteme und Besprechungsraum sowie Sekretariat" }, { id: 43834, name: "IPF Besprechungsraum" }, { id: 43910, name: "Fritz-Haller-Hörsaal(HS37)" }, { id: 43798, name: "Fakultätsbibliothek" }, { id: 43498, name: "Neuer-Hörsaal" }],
+  "KL": [{ id: 47518, name: "Photo-Lab" }, { id: 48217, name: "GIS-Lab" }],// hier kannst du die Keller-Räume hinzufügen, z.B. "KL": [{ id: 12345, name: "Kellerraum 1" }, ...]
+  "EG": [{ id: 28910, name: "Jordan-Hörsaal" }, { id: 35597, name: "Sky-Hörsaal" }, { id: 43656, name: "Lehrstuhl für Geoinformatik Büro und Sekretariat" }, { id: 35609, name: "Haid-Hörsaal" }, { id: 35621, name: "PC-Pool" }, { id: 43786, name: "Geodätische Sensorsysteme und Besprechungsraum sowie Sekretariat" }, { id: 43834, name: "IPF Besprechungsraum" }, { id: 43910, name: "Fritz-Haller-Hörsaal(HS37)" }, { id: 43798, name: "Fakultätsbibliothek" }, { id: 43498, name: "Neuer-Hörsaal" }, { id: 48299, name: "Damen Toilette" }, { id: 48257, name: "Herren Toilette" }], // hier kannst du die Erdgeschoss-Räume hinzufügen
   "1OG": [{ id: 43587, name: "Egon-Eiermann-Hörsaal(HS16)" }, { id: 43603, name: "Hörsaal 9" }], // hier kannst du die 1. OG-Räume hinzufügen
   "2OG": [{ id: 43865, name: "Zeichnensaal" }], // hier kannst du die 2. OG-Räume hinzufügen
   "Dach": [{ id: 43851, name: "Observatorium" }] // hier kannst du die Dachgeschoss-Räume hinzufügen
